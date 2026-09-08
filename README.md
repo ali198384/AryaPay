@@ -169,15 +169,10 @@ AryaPay
     ├── wallet/
     ├── transfer/
     ├── transactions/
-    └── profile/
-```
+    ├── profile/
+    ├── bills/
+    └── cards/
 
-Featureهای زیر بعد از تکمیل جریان انتقال اضافه خواهند شد:
-
-```text
-feature/
-├── bills/
-└── cards/
 ```
 
 ---
