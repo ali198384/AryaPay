@@ -18,8 +18,6 @@
 - امنیت به‌صورت لایه (Keystore، Biometric، redaction) نه `if` پراکنده
 - CI روی PR: تست + Detekt + ممنوعیت مبلغ اعشاری
 
-نسخهٔ ۱ عمداً KMP، Wear، ویجت و Navigation 3 ندارد.
-
 ---
 
 ## جریان محصول
