@@ -20,15 +20,6 @@
 ---
 
 ## جریان محصول
-# AryaPay
-
-پروژهٔ نمونهٔ یک اپلیکیشن فین‌تک اندرویدی با تمرکز بر معماری تمیز، امنیت، تست‌پذیری و رویکرد `offline-first`.
-
-این پروژه با هدف **یادگیری عمیق معماری Android و ساخت یک پورتفولیوی حرفه‌ای برای مصاحبه‌های شغلی** توسعه داده می‌شود.
-
----
-
-## جریان محصول
 
 ```text
 ورود
@@ -229,7 +220,7 @@ Android Emulator API 26+
 ### دریافت پروژه
 
 ```bash
-git clone https://github.com/<USER>/AryaPay.git
+git clone https://github.com/ali198384/AryaPay.git
 cd AryaPay
 ```
 
