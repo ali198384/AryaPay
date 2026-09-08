@@ -1,68 +1,53 @@
 # AryaPay
 
-سوپراپ فین‌تک دمو برای مصاحبه **Senior Android**.
+نئوبانک دمو برای مصاحبه Senior Android — معماری، مدل پول، امنیت لایهٔ اپ، و تست.
 
-نئوبانک آموزشی — نه بانک واقعی. هدف این ریپو نمایش معماری، مدل پول، امنیت لایهٔ اپ، تست و تصمیم‌گیری است؛ نه اتصال زنده به شبکهٔ بانکی.
+این اپ به بانک واقعی وصل نیست. داده و API کاملاً نمایشی‌اند.
 
-minSdk 26 · Kotlin 2.x · Jetpack Compose · Hilt · Clean Architecture (UDF/MVI) · Offline-first
-
----
-
-## چرا این پروژه
-
-رزومهٔ من تجربهٔ محصول و رهبری تیم را نشان می‌دهد. این ریپو چیزهایی را نشان می‌دهد که در مصاحبه Senior فین‌تک واقعاً پرسیده می‌شود:
-
-- مدل پول بدون `Double`/`Float`
-- دامنهٔ خالص JVM و قوانین کسب‌وکار قابل اثبات با تست
-- ماژولار واقعی (فیچرها همدیگر را نمی‌بینند)
-- امنیت به‌صورت لایه، نه `if` پراکنده
-- Offline-first برای موجودی و تاریخچه
-- CI که PR خراب را نگه می‌دارد
-- ADR برای هر تصمیم معماری
-
-KMP، Wear، ویجت و Navigation 3 عمداً در نسخهٔ ۱ نیستند. امتیاز Senior از عمق P0 می‌آید، نه از تعداد صفحه.
+`minSdk 26` · Kotlin 2.x · Compose · Hilt · UDF/MVI · Offline-first
 
 ---
 
-## محصول نسخه ۱
+## این ریپو چه چیزی را نشان می‌دهد
+
+- مدل پول با `value class Rial(val value: Long)` — بدون `Double`/`Float`
+- دامنهٔ خالص JVM؛ قوانین کسب‌وکار بدون امولاتور تست می‌شوند
+- ماژولار واقعی: `:feature:*` همدیگر را نمی‌بینند
+- Offline-first: Room منبع حقیقت است، شبکه فقط refresh
+- امنیت به‌صورت لایه (Keystore، Biometric، redaction) نه `if` پراکنده
+- CI روی PR: تست + Detekt + ممنوعیت مبلغ اعشاری
+
+نسخهٔ ۱ عمداً KMP، Wear، ویجت و Navigation 3 ندارد.
+
+---
+
+## جریان محصول
 ورود (OTP دمو + PIN + Biometric)
 
-→ خانه (موجودی + میانبر + Loading/Empty/Error)
+→ خانه
 
 → انتقال کارت / شبا / موبایل ← قلب پورتفولیو
 
 → پیش‌نمایش کارمزد → تأیید → OTP → رسید
 
-→ تاریخچه صفحه‌بندی‌شده + فیلتر
+→ تاریخچه صفحه‌بندی‌شده
 
-→ تنظیمات امنیتی (قفل، timeout، biometrics)
+→ تنظیمات امنیتی
 
-
-اولویت	چیست	قانون
-P0	اسکلت ماژولار، مدل پول، Auth/قفل، کیف پول، انتقال، رسید، تاریخچه، امنیت، تست، CI، ADR، flavor دمو	بدون DoD سبز، فیچر بعدی شروع نمی‌شود
-P1	قبض/شارژ، اسکن کارت، SSL Pinning، Root detection، R8 full، screenshot test	فقط بعد از تکمیل P0
-P2	داشبورد هزینه، ویدیوی دمو، GitHub Release امضاشده	تمایز؛ هویت پروژه نیست
-نسخهٔ ۱ ندارد: بک‌اند واقعی بانک، فینوتک live، بورس، چت، KMP.
-
-APIها Fake تمیز با قرارداد مشخص هستند. اگر sandbox آمد، پشت همان اینترفیس می‌رود.
+قبض، اسکن کارت و سخت‌سازی production (Pinning، R8، screenshot) بعد از تکمیل انتقال می‌آیند.
 
 معماری
-الگوی رسمی Guide to app architecture و Now in Android:
+الگوی رسمی Android + UDF:
 
-UI: Compose + ViewModel + UDF (UiState / UiIntent / UiEffect)
-Domain: UseCaseهایی که قانون واقعی دارند، نه wrapper خالی
-Data: Repository = تنها درگاه؛ Room منبع حقیقت؛ شبکه برای refresh
-Screen (Compose)
+Compose Screen
 
-→ Intent
+→ UiIntent
 
 → ViewModel
 
-→ UseCase (:core:domain) خالص JVM
+→ UseCase (:core:domain) JVM-only
 
-→ Repository (interface)
-
-→ Repository impl (:core:data)
+→ Repository
 
 → Room / DataStore / FakeApi
 
@@ -70,164 +55,90 @@ Screen (Compose)
 
 → SharedFlow<UiEffect>
 
-جملهٔ مصاحبه:
+جملهٔ کوتاه برای مصاحبه:
 
-معماری رسمی اندروید با UDF و offline-first. Domain جدا است چون قوانین پول و شبا باید بدون Android تست شوند.
+معماری رسمی اندروید با UDF و offline-first. Domain جدا است چون قوانین ریال و شبا باید بدون Android تست شوند.
 
 قوانین غیرقابل مذاکره
-:core:domain هیچ dependency به Android / Retrofit / Room / Compose ندارد.
-:feature:* همدیگر را نمی‌بینند. گراف ناوبری فقط در :app.
-پول فقط value class Rial(val value: Long). Double/Float برای مبلغ compile-time ممنوع (Detekt).
+:core:domain به Android / Retrofit / Room / Compose وابسته نیست.
+فیچرها به هم dependency ندارند. Nav host فقط در :app.
+مبلغ فقط Rial از جنس Long. Detekt استفاده از Double/Float برای پول را رد می‌کند.
 PAN کامل، CVV، PIN، OTP در لاگ، Room یا Analytics نمی‌روند.
-Biometric، Clock، RNG، RootDetector پشت اینترفیس می‌روند تا Fake شوند.
-هیچ فیچر P0 بدون تست قانون کسب‌وکار merge نمی‌شود.
+Biometric، Clock، RNG و RootDetector پشت اینترفیس‌اند تا Fake شوند.
 هر صفحهٔ P0 چهار حالت دارد: Loading / Empty / Success / Error.
-تومان و اعداد فارسی فقط در UI؛ دامنه با ریال (Long) کار می‌کند.
+تومان و اعداد فارسی فقط در UI؛ دامنه با ریال کار می‌کند.
+جزئیات تصمیم‌ها: docs/adr/.
+
 ماژول‌ها
-Package ریشه: ir.aryapay
+Package: ir.aryapay
 
-AryaPay/
+app/ Nav host, Hilt, flavors
 
-├── README.md
+build-logic/ convention plugins
 
-├── docs/adr/ # تصمیم‌های معماری
+core/
 
-├── gradle/libs.versions.toml
+common/ Result, AppError, DispatcherProvider
 
-├── build-logic/ # convention plugins
+domain/ مدل‌ها، UseCase، اینترفیس Repository
 
-├── app/ # Nav host, HiltApp, flavors
+data/ پیاده‌سازی Repository
 
-├── core/
+database/ Room
 
-│ ├── common/ # Result, AppError, DispatcherProvider
+network/ Retrofit + Fake
 
-│ ├── domain/ # مدل‌ها، UseCase، اینترفیس Repository
+datastore/
 
-│ ├── data/ # impl ریپو، mapper
+security/
 
-│ ├── database/ # Room
+ui/ Design system، RTL، اعداد فارسی
 
-│ ├── network/ # Retrofit + Fake (+ Pinning در P1)
+testing/ Fakeها و TestDispatcher
 
-│ ├── datastore/
+feature/
 
-│ ├── security/
+auth/ home/ wallet/ transfer/ transactions/ profile/
 
-│ ├── ui/ # Design system، RTL، اعداد فارسی
+bills/ cards/ ← بعد از تکمیل انتقال
 
-│ └── testing/ # Fakeها، TestDispatcher، faker شناسه‌ها
+استک
 
-└── feature/
-
-├── auth/
-
-├── home/
-
-├── wallet/
-
-├── transfer/ # مهم‌ترین ماژول رزومه
-
-├── transactions/
-
-├── bills/ # P1
-
-├── cards/ # P1
-
-└── profile/
-
-Tech stack
-
-انتخاب	چرا
-Kotlin 2.x + Compose + Material 3	استاندارد فعلی
-minSdk 26	Biometric + EncryptedFile بدون دردسر
-Hilt	بازار ایران؛ تست‌پذیر با @UninstallModules
-Navigation 2 type-safe + kotlinx.serialization	شناخته‌شده در مصاحبه‌های ایران
-Room منبع حقیقت + DataStore برای prefs	offline-first واقعی
-Retrofit + OkHttp + Kotlinx Serialization	لایهٔ شبکه
-JUnit 5 + Turbine + Fake	هرم تست
-MockWebServer	قرارداد API
-Paparazzi	screenshot بدون امولاتور (P1)
-GitHub Actions + Detekt + Spotless	کیفیت اجباری
-LeakCanary فقط debug	production mindset
-Navigation 3 عمداً انتخاب نشد. امتیاز از type-safe بودن و جدا بودن گراف فیچر است، نه از شماره نسخه. دلیل در docs/adr/ ثبت می‌شود.
-
-XML جدید نوشته نمی‌شود.
-
-Definition of Done
-فیچر P0 تمام نیست مگر:
-
-[ ] قانون دامنه با Unit Test سبز است
-[ ] ViewModel: Intent → State / Effect تست شده
-[ ] Loading / Empty / Error / Success در UI هست
-[ ] اعداد فارسی، RTL؛ تومان فقط در UI
-[ ] هیچ secretای در لاگ نیست
-[ ] فیچر به فیچر دیگر dependency ندارد
-[ ] در صورت تصمیم معماری: ADR
-[ ] CI روی PR سبز است
-مایل‌استون‌ها
-بدون تقویم. هر مایل‌استون وقتی تمام است که روی امولاتور و روی تست‌ها قابل دفاع باشد.
-
-
-خروجی	سیگنال استخدام
-M0	قرارداد + ریپوی خالی	همین فایل
-M1	Catalog، convention plugins، تم RTL، Rial، validators ایران، Detekt، اولین تست JVM	./gradlew test بدون دستگاه
-M2	UseCaseهای انتقال، FakeRepository، تست جدول‌محور	سقف روزانه را با تست نشان می‌دهم
-M3	OTP دمو، PIN، Biometric، Encrypted DataStore، قفل timeout، CI: test + detekt	امنیت لایه است، نه پراکنده
-M4	Room، موجودی، تاریخچه، pagination	منبع حقیقت لوکال است
-M5	State machine انتقال، رسید بانکی، MockWebServer	قلب رزومه؛ اگر فقط تا اینجا عالی باشد برای Senior فین‌تک کافی است
-M6	قبض/شارژ + اسکن کارت	فقط بعد از DoD کامل M5
-M7	Pinning، Root/Emulator detection، FLAG_SECURE، R8، screenshot، Baseline Profile	سخت‌سازی production
-M8	README دفاعی، نمودار ماژول، جدول ADR، ویدیوی ۹۰ ثانیه‌ای	بستهٔ مصاحبه
-تست
-/\
-
-/UI\ کم؛ Paparazzi + مسیرهای حیاتی Compose
-
-/----\
-
-/ VM \ Intent → State برای هر صفحه P0
-
-/ Data \ Room in-memory + MockWebServer
-
-/-----------\
-
-/ Domain Unit \ زیاد؛ جدول قوانین مالی و شناسه‌ها
-
-Fake بر مالی و شناسه‌ها
-
-Fake بر Mock خارجی پیچیده است.
-
-جملهٔ مصاحبه:
-
-CIم تست شکسته یا Double برای ریال را روی main بگذارم.
-
-ADR
-تصمیم‌ها در docs/adr/:
-
-چرا Rial و چرا Long
-چرا فیچرها همدیگر را نمی‌بین. چرا Room منبع حقیقت است نه پاسخ شبکه4. چرا Navigation 2 type-safe
-چرا Room منبع حقیقت است نه پاسخ شبکه
-چرا PAN کامل هرگز persist نمی‌شود
-هر فایل چند خط است. هدف: تیم بعدی دلیل را حدس نزند.
-
+لایه	انتخاب
+UI	Compose, Material 3, Navigation 2 type-safe
+DI	Hilt
+داده	Room (source of truth), DataStore, Retrofit + Kotlinx Serialization
+تست	JUnit 5, Turbine, Fake, MockWebServer, Paparazzi (بعدی)
+کیفیت	Detekt, Spotless, GitHub Actions, LeakCanary (debug)
 اجرا
-پیش‌نیاز: Android Studio مناسب Kotlin 2 / AGP فعلی، JDK 17، امولاتور API 26+.
+Android Studio با Kotlin 2 / AGP فعلی، JDK 17، امولاتور API 26+.
 
 bash
-git clone https://github.com/ali198384/AryaPay.git
+
+git clone https://github.com/<USER>/AryaPay.git
+
 cd AryaPay
-./gradlew test          # تست‌های JVM؛ از M1
+
+./gradlew test
+
 ./gradlew installDemoDebug
-Flavor پیش‌فرض: demo (Fake API، بدون شبکهٔ بانکی).
 
-وضعیت فعلی: M0 — قرارداد و اسکلت استودیو. فیچر مالی هنوز پیاده نشده است.
+Flavor پیش‌فرض: demo — Fake API، بدون شبکهٔ بانکی.
 
-امنیت و محدودهٔ دمو
-هیچ کارت، CVV، PIN یا OTP واقعی ذخیره یا لاگ نمی‌شود.
-PAN در UI ماسک می‌شود؛ در دامنه حداکثر به‌صورت hashed/tokenized.
-این اپ به بانک، شاپرک یا فینوتک وصل نیست. دادهٔ نمایشی است.
+وضعیت
+M0 — قرارداد و اسکلت. فیچر مالی هنوز پیاده نشده.
+
+
+مایل‌استون	خروجی
+M1	Catalog، convention plugins، Rial، validators ایران، اولین تست JVM
+M2	UseCaseهای انتقال + تست جدول‌محور
+M3	PIN / Biometric / قفل اپ + CI
+M4	کیف پول offline-first
+M5	انتقال کامل + رسید — قلب رزومه
+M6–M8	قبض، سخت‌سازی production، بستهومه
+M6–M8	قبض، سخت‌سازی production، بسته حالت UI تمام نیست.
+امنیت و محدوده
+کارت، CVV، PIN یا OTP واقعی ذخیره یا لاگ نمی‌شود.
+به شاپرک، فینوتک یا بانک وصل نیست.
 برای مصاحبه و یادگیری معماری است، نه استفادهٔ تولیدی.
-مجوز
-آموزشی / پورتفولیو. استفاده از نام یا برند بانک‌های ایران نیست.
-
+نام یا برند بانک ایرانی استفاده نشده است.
