@@ -17,16 +17,15 @@
 - امنیت به‌صورت لایه (Keystore، Biometric، redaction) نه `if` پراکنده
 - CI روی PR: تست + Detekt + ممنوعیت مبلغ اعشاری
 
-نسخهٔ ۱ عمداً KMP، Wear، ویجت و Navigation 3 ندارد.
-
 ---
 
 ## جریان محصول
+
 ورود (OTP دمو + PIN + Biometric)
 
 → خانه
 
-→ انتقال کارت / شبا / موبایل ← قلب پورتفولیو
+→ انتقال کارت / شبا / موبایل     ← قلب پورتفولیو
 
 → پیش‌نمایش کارمزد → تأیید → OTP → رسید
 
@@ -36,109 +35,128 @@
 
 قبض، اسکن کارت و سخت‌سازی production (Pinning، R8، screenshot) بعد از تکمیل انتقال می‌آیند.
 
-معماری
+---
+
+## معماری
+
 الگوی رسمی Android + UDF:
 
+```text
 Compose Screen
+      ↓
+   UiIntent
+      ↓
+  ViewModel
+      ↓
+UseCase (:core:domain)   ← JVM-only
+      ↓
+ Repository
+      ↓
+Room / DataStore / FakeApi
+      ↓
+StateFlow<UiState>
+SharedFlow<UiEffect>
+```
 
-→ UiIntent
+جملهٔ کوتاه:
 
-→ ViewModel
+> معماری رسمی اندروید با UDF و offline-first. Domain جدا است چون قوانین ریال و شبا باید بدون Android تست شوند.
 
-→ UseCase (:core:domain) JVM-only
+### قوانین غیرقابل مذاکره
 
-→ Repository
+1. `:core:domain` به Android / Retrofit / Room / Compose وابسته نیست.
+2. فیچرها به هم dependency ندارند. Nav host فقط در `:app`.
+3. مبلغ فقط `Rial` از جنس `Long`. Detekt استفاده از `Double`/`Float` برای پول را رد می‌کند.
+4. PAN کامل، CVV، PIN، OTP در لاگ، Room یا Analytics نمی‌روند.
+5. Biometric، Clock، RNG و RootDetector پشت اینترفیس‌اند تا Fake شوند.
+6. هر صفحهٔ P0 چهار حالت دارد: Loading / Empty / Success / Error.
+7. تومان و اعداد فارسی فقط در UI؛ دامنه با ریال کار می‌کند.
 
-→ Room / DataStore / FakeApi
+جزئیات تصمیم‌ها: [`docs/adr/`](docs/adr/).
 
-→ StateFlow<UiState>
+---
 
-→ SharedFlow<UiEffect>
+## ماژول‌ها
 
-جملهٔ کوتاه برای مصاحبه:
+**Package:** `ir.aryapay`
 
-معماری رسمی اندروید با UDF و offline-first. Domain جدا است چون قوانین ریال و شبا باید بدون Android تست شوند.
+```text
+app/                    Nav host, Hilt, flavors
 
-قوانین غیرقابل مذاکره
-:core:domain به Android / Retrofit / Room / Compose وابسته نیست.
-فیچرها به هم dependency ندارند. Nav host فقط در :app.
-مبلغ فقط Rial از جنس Long. Detekt استفاده از Double/Float برای پول را رد می‌کند.
-PAN کامل، CVV، PIN، OTP در لاگ، Room یا Analytics نمی‌روند.
-Biometric، Clock، RNG و RootDetector پشت اینترفیس‌اند تا Fake شوند.
-هر صفحهٔ P0 چهار حالت دارد: Loading / Empty / Success / Error.
-تومان و اعداد فارسی فقط در UI؛ دامنه با ریال کار می‌کند.
-جزئیات تصمیم‌ها: docs/adr/.
-
-ماژول‌ها
-Package: ir.aryapay
-
-app/ Nav host, Hilt, flavors
-
-build-logic/ convention plugins
+build-logic/            convention plugins
 
 core/
-
-common/ Result, AppError, DispatcherProvider
-
-domain/ مدل‌ها، UseCase، اینترفیس Repository
-
-data/ پیاده‌سازی Repository
-
-database/ Room
-
-network/ Retrofit + Fake
-
-datastore/
-
-security/
-
-ui/ Design system، RTL، اعداد فارسی
-
-testing/ Fakeها و TestDispatcher
+├── common/              Result, AppError, DispatcherProvider
+├── domain/              مدل‌ها، UseCase، اینترفیس Repository
+├── data/                پیاده‌سازی Repository
+├── database/            Room
+├── network/             Retrofit + Fake
+├── datastore/           DataStore
+├── security/            Security abstractions
+├── ui/                  Design system، RTL، اعداد فارسی
+└── testing/             Fakeها و TestDispatcher
 
 feature/
+├── auth/
+├── home/
+├── wallet/
+├── transfer/
+├── transactions/
+└── profile/
 
-auth/ home/ wallet/ transfer/ transactions/ profile/
+bills/  cards/           ← بعد از تکمیل انتقال
+```
 
-bills/ cards/ ← بعد از تکمیل انتقال
+---
 
-استک
+## استک
 
-لایه	انتخاب
-UI	Compose, Material 3, Navigation 2 type-safe
-DI	Hilt
-داده	Room (source of truth), DataStore, Retrofit + Kotlinx Serialization
-تست	JUnit 5, Turbine, Fake, MockWebServer, Paparazzi (بعدی)
-کیفیت	Detekt, Spotless, GitHub Actions, LeakCanary (debug)
-اجرا
+| لایه  | انتخاب                                                              |
+| ----- | ------------------------------------------------------------------- |
+| UI    | Compose, Material 3, Navigation 2 type-safe                         |
+| DI    | Hilt                                                                |
+| داده  | Room (source of truth), DataStore, Retrofit + Kotlinx Serialization |
+| تست   | JUnit 5, Turbine, Fake, MockWebServer, Paparazzi (بعدی)             |
+| کیفیت | Detekt, Spotless, GitHub Actions, LeakCanary (debug)                |
+
+---
+
+## اجرا
+
 Android Studio با Kotlin 2 / AGP فعلی، JDK 17، امولاتور API 26+.
 
-bash
-
-git clone https://github.com/<USER>/AryaPay.git
+```bash
+git clone https://github.com/ali198384/AryaPay.git
 
 cd AryaPay
 
 ./gradlew test
 
 ./gradlew installDemoDebug
+```
 
-Flavor پیش‌فرض: demo — Fake API، بدون شبکهٔ بانکی.
+Flavor پیش‌فرض: `demo` — Fake API، بدون شبکهٔ بانکی.
 
-وضعیت
-M0 — قرارداد و اسکلت. فیچر مالی هنوز پیاده نشده.
+---
 
+## وضعیت
 
-مایل‌استون	خروجی
-M1	Catalog، convention plugins، Rial، validators ایران، اولین تست JVM
-M2	UseCaseهای انتقال + تست جدول‌محور
-M3	PIN / Biometric / قفل اپ + CI
-M4	کیف پول offline-first
-M5	انتقال کامل + رسید — قلب رزومه
-M6–M8	قبض، سخت‌سازی production، بستهومه
-M6–M8	قبض، سخت‌سازی production، بسته حالت UI تمام نیست.
-امنیت و محدوده
-کارت، CVV، PIN یا OTP واقعی ذخیره یا لاگ نمی‌شود.
-به شاپرک، فینوتک یا بانک وصل نیست.
-برای مصاحبه و یادگیری معماری است، نه استفادهٔ تولیدی.
-نام یا برند بانک ایرانی استفاده نشده است.
+**M0 — قرارداد و اسکلت.** فیچر مالی هنوز پیاده نشده.
+
+| مایل‌استون | خروجی                                                                |
+| ---------- | -------------------------------------------------------------------- |
+| M1         | Catalog، convention plugins، `Rial`، validators ایران، اولین تست JVM |
+| M2         | UseCaseهای انتقال + تست جدول‌محور                                    |
+| M3         | PIN / Biometric / قفل اپ + CI                                        |
+| M4         | کیف پول offline-first                                                |
+| M5         | انتقال کامل + رسید — قلب رزومه                                       |
+| M6–M8      | قبض، سخت‌سازی production، تکمیل حالت‌های UI                          |
+
+---
+
+## امنیت و محدوده
+
+* کارت، CVV، PIN یا OTP واقعی ذخیره یا لاگ نمی‌شود.
+* به شاپرک، فینوتک یا بانک وصل نیست.
+* برای مصاحبه و یادگیری معماری است، نه استفادهٔ تولیدی.
+* نام یا برند بانک ایرانی استفاده نشده است.

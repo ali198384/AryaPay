@@ -4,13 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.aryapay"
+    namespace = "ir.aryapay"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.aryapay"
+        applicationId = "ir.aryapay"
         minSdk = 28
         targetSdk = 37
         versionCode = 1
