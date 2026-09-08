@@ -1,15 +1,70 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# =========================
+# Gradle
+# =========================
+.gradle/
+**/build/
+build/
+
+# Local configuration
 local.properties
+
+# =========================
+# Android build outputs
+# =========================
+*.apk
+*.ap_
+*.aab
+*.dex
+
+# =========================
+# Kotlin / Java compiled
+# =========================
+*.class
+*.kotlin_module
+
+# =========================
+# Android Studio / IntelliJ
+# =========================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# =========================
+# NDK
+# =========================
+.externalNativeBuild/
+.cxx/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# OS files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# Misc
+# =========================
+captures/
+out/
+bin/
+gen/
+.navigation/
+
+# Security
+*.jks
+*.keystore
+
+/captures
