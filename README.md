@@ -1,4 +1,4 @@
-# AryaPay
+# AriaPay
 
 نئوبانک دمو برای مصاحبه Senior Android — معماری، مدل پول، امنیت لایهٔ اپ، و تست.
 
@@ -119,13 +119,13 @@ docs/adr/
 Package اصلی:
 
 ```text
-ir.aryapay
+ir.ariapay
 ```
 
 ساختار پروژه:
 
 ```text
-AryaPay
+AriaPay
 │
 ├── app/
 │   └── NavHost, Hilt, Flavors
@@ -215,8 +215,8 @@ Android Emulator API 26+
 ### دریافت پروژه
 
 ```bash
-git clone https://github.com/ali198384/AryaPay.git
-cd AryaPay
+git clone https://github.com/ali198384/AriaPay.git
+cd AriaPay
 ```
 
 ### اجرای تست‌ها
@@ -276,7 +276,7 @@ demo
 
 ## اهداف پروژه
 
-تمرکز اصلی AryaPay روی موارد زیر است:
+تمرکز اصلی AriaPay روی موارد زیر است:
 
 ```text
 Clean Architecture

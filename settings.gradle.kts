@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         /*google {
             content {
@@ -13,9 +14,7 @@ pluginManagement {
         maven { url = uri("https://maven.myket.ir/") }
     }
 }
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
@@ -26,6 +25,10 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AryaPay"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+rootProject.name = "AriaPay"
 include(":app")
- 
+include(":core:common")
+include(":core:model")
+include(":feature:home")
